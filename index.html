@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WCC — Skill Map</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #F0EBE2;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-x: hidden;
+}
+
+/* Grid background like reference */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
+linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px);
+background-size: 48px 48px;
+pointer-events: none;
+z-index: 0;
+}
+
+.header {
+position: relative;
+z-index: 2;
+text-align: center;
+margin-bottom: 40px;
+}
+
+.header-label {
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: 4px;
+color: #B83A28;
+text-transform: uppercase;
+margin-bottom: 8px;
+}
+
+.header-title {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: clamp(32px, 5vw, 52px);
+color: #0A0908;
+letter-spacing: 3px;
+}
+
+/* MAP CONTAINER */
+.map-wrap {
+position: relative;
+z-index: 1;
+width: 100%;
+max-width: 1100px;
+}
+
+svg.lines {
+position: absolute;
+top: 0; left: 0;
+width: 100%; height: 100%;
+pointer-events: none;
+z-index: 1;
+overflow: visible;
+}
+
+svg.lines line {
+stroke: #B83A28;
+stroke-width: 2.5;
+stroke-linecap: round;
+}
+
+/* CENTER NODE */
+.center {
+position: absolute;
+left: 50%;
+top: 50%;
+transform: translate(-50%, -50%);
+z-index: 10;
+text-align: center;
+}
+
+.center-badge {
+background: #B83A28;
+color: #F4EEE6;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: 3px;
+text-transform: uppercase;
+padding: 5px 14px;
+display: inline-block;
+margin-bottom: 4px;
+}
+
+.center-title {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: clamp(36px, 5vw, 56px);
+letter-spacing: 2px;
+color: #0A0908;
+line-height: 1;
+}
+
+/* SKILL NODES */
+.skill {
+position: absolute;
+z-index: 10;
+text-align: center;
+cursor: default;
+transition: transform 0.2s ease;
+}
+
+.skill:hover { transform: scale(1.06); }
+.skill:hover .skill-title { color: #B83A28; }
+
+.skill-icon {
+font-size: 22px;
+display: block;
+margin-bottom: 4px;
+line-height: 1;
+}
+
+.skill-title {
+font-family: ‘DM Sans’, sans-serif;
+font-size: clamp(12px, 1.4vw, 15px);
+font-weight: 700;
+color: #0A0908;
+line-height: 1.2;
+transition: color 0.2s;
+white-space: nowrap;
+}
+
+.skill-sub {
+font-family: ‘DM Mono’, monospace;
+font-size: 9px;
+letter-spacing: 1px;
+color: #B83A28;
+text-transform: uppercase;
+margin-top: 3px;
+white-space: nowrap;
+}
+
+/* LEGEND */
+.legend {
+position: relative;
+z-index: 2;
+margin-top: 40px;
+display: flex;
+gap: 24px;
+justify-content: center;
+flex-wrap: wrap;
+}
+
+.legend-item {
+display: flex;
+align-items: center;
+gap: 8px;
+font-family: ‘DM Mono’, monospace;
+font-size: 10px;
+letter-spacing: 2px;
+color: #7A7068;
+text-transform: uppercase;
+}
+
+.legend-dot {
+width: 8px; height: 8px;
+border-radius: 50%;
+}
+
+.dot-now { background: #B83A28; }
+.dot-build { background: #2E2820; }
+
+/* MOBILE */
+@media (max-width: 700px) {
+.map-wrap { display: none; }
+.mobile-list { display: flex !important; }
+}
+
+.mobile-list {
+display: none;
+flex-direction: column;
+gap: 12px;
+width: 100%;
+max-width: 400px;
+position: relative;
+z-index: 2;
+}
+
+.ml-item {
+background: #fff;
+border-left: 3px solid #B83A28;
+padding: 14px 18px;
+display: flex;
+align-items: center;
+gap: 14px;
+}
+
+.ml-icon { font-size: 20px; }
+.ml-title { font-size: 15px; font-weight: 700; color: #0A0908; }
+.ml-sub { font-family: ‘DM Mono’, monospace; font-size: 9px; color: #B83A28; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+</style>
+
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">West Coste Caffe · Dominik · 2026</div>
+  <div class="header-title">SKILL MAP</div>
+</div>
+
+<!-- DESKTOP MAP -->
+
+<div class="map-wrap" id="mapWrap">
+  <svg class="lines" id="svgLines"></svg>
+
+  <!-- CENTER -->
+
+  <div class="center" id="center">
+    <div class="center-badge">Base Skill</div>
+    <div class="center-title">WCC<br>FOUNDER</div>
+  </div>
+
+  <!-- SKILLS — positioned via JS -->
+
+  <div class="skill" id="s0">
+    <span class="skill-icon">☕</span>
+    <div class="skill-title">Umiejętności<br>Baristy</div>
+    <div class="skill-sub">Już w trakcie</div>
+  </div>
+
+  <div class="skill" id="s1">
+    <span class="skill-icon">📱</span>
+    <div class="skill-title">Media<br>& Content</div>
+    <div class="skill-sub">YT · TikTok · IG</div>
+  </div>
+
+  <div class="skill" id="s2">
+    <span class="skill-icon">🏢</span>
+    <div class="skill-title">Zarządzanie<br>Spółką</div>
+    <div class="skill-sub">Sp. z o.o.</div>
+  </div>
+
+  <div class="skill" id="s3">
+    <span class="skill-icon">🧠</span>
+    <div class="skill-title">Biohacking<br>& Performance</div>
+    <div class="skill-sub">Już w trakcie</div>
+  </div>
+
+  <div class="skill" id="s4">
+    <span class="skill-icon">🍽️</span>
+    <div class="skill-title">F&B<br>Management</div>
+    <div class="skill-sub">Food cost · Marże</div>
+  </div>
+
+  <div class="skill" id="s5">
+    <span class="skill-icon">👥</span>
+    <div class="skill-title">HR<br>& Rekrutacja</div>
+    <div class="skill-sub">Zespół · Onboarding</div>
+  </div>
+
+  <div class="skill" id="s6">
+    <span class="skill-icon">🎨</span>
+    <div class="skill-title">Marketing<br>& Brand</div>
+    <div class="skill-sub">Strategia marki</div>
+  </div>
+
+  <div class="skill" id="s7">
+    <span class="skill-icon">🤝</span>
+    <div class="skill-title">Negocjacje<br>& Najem</div>
+    <div class="skill-sub">Lokal · Dostawcy</div>
+  </div>
+
+  <div class="skill" id="s8">
+    <span class="skill-icon">📋</span>
+    <div class="skill-title">Project<br>Management</div>
+    <div class="skill-sub">Koordynacja teamu</div>
+  </div>
+
+  <div class="skill" id="s9">
+    <span class="skill-icon">🧩</span>
+    <div class="skill-title">Psychologia<br>& Przywództwo</div>
+    <div class="skill-sub">Już w trakcie</div>
+  </div>
+
+  <div class="skill" id="s10">
+    <span class="skill-icon">⚖️</span>
+    <div class="skill-title">Podstawy<br>Prawa</div>
+    <div class="skill-sub">Umowy · IP · Spółka</div>
+  </div>
+
+  <div class="skill" id="s11">
+    <span class="skill-icon">🏗️</span>
+    <div class="skill-title">Projektowanie<br>Przestrzeni</div>
+    <div class="skill-sub">Industrial · Beton</div>
+  </div>
+
+  <div class="skill" id="s12">
+    <span class="skill-icon">⚡</span>
+    <div class="skill-title">Deep Work<br>& System</div>
+    <div class="skill-sub">Już w trakcie</div>
+  </div>
+
+  <div class="skill" id="s13">
+    <span class="skill-icon">🌐</span>
+    <div class="skill-title">Networking</div>
+    <div class="skill-sub">Już w trakcie</div>
+  </div>
+
+  <div class="skill" id="s14">
+    <span class="skill-icon">💰</span>
+    <div class="skill-title">Podstawy<br>Finansów</div>
+    <div class="skill-sub">Rozumieć liczby</div>
+  </div>
+</div>
+
+<!-- MOBILE FALLBACK -->
+
+<div class="mobile-list">
+  <div class="ml-item"><span class="ml-icon">☕</span><div><div class="ml-title">Umiejętności Baristy</div><div class="ml-sub">Już w trakcie</div></div></div>
+  <div class="ml-item"><span class="ml-icon">📱</span><div><div class="ml-title">Media & Content</div><div class="ml-sub">YT · TikTok · IG</div></div></div>
+  <div class="ml-item"><span class="ml-icon">🏢</span><div><div class="ml-title">Zarządzanie Spółką</div><div class="ml-sub">Sp. z o.o.</div></div></div>
+  <div class="ml-item"><span class="ml-icon">🧠</span><div><div class="ml-title">Biohacking & Performance</div><div class="ml-sub">Już w trakcie</div></div></div>
+  <div class="ml-item"><span class="ml-icon">🍽️</span><div><div class="ml-title">F&B Management</div><div class="ml-sub">Food cost · Marże</div></div></div>
+  <div class="ml-item"><span class="ml-icon">👥</span><div><div class="ml-title">HR & Rekrutacja</div><div class="ml-sub">Zespół · Onboarding</div></div></div>
+  <div class="ml-item"><span class="ml-icon">🎨</span><div><div class="ml-title">Marketing & Brand</div><div class="ml-sub">Strategia marki</div></div></div>
+  <div class="ml-item"><span class="ml-icon">🤝</span><div><div class="ml-title">Negocjacje & Najem</div><div class="ml-sub">Lokal · Dostawcy</div></div></div>
+  <div class="ml-item"><span class="ml-icon">📋</span><div><div class="ml-title">Project Management</div><div class="ml-sub">Koordynacja teamu</div></div></div>
+  <div class="ml-item"><span class="ml-icon">🧩</span><div><div class="ml-title">Psychologia & Przywództwo</div><div class="ml-sub">Już w trakcie</div></div></div>
+  <div class="ml-item"><span class="ml-icon">⚖️</span><div><div class="ml-title">Podstawy Prawa</div><div class="ml-sub">Umowy · IP</div></div></div>
+  <div class="ml-item"><span class="ml-icon">🏗️</span><div><div class="ml-title">Projektowanie Przestrzeni</div><div class="ml-sub">Industrial · Beton</div></div></div>
+  <div class="ml-item"><span class="ml-icon">⚡</span><div><div class="ml-title">Deep Work & System</div><div class="ml-sub">Już w trakcie</div></div></div>
+  <div class="ml-item"><span class="ml-icon">🌐</span><div><div class="ml-title">Networking</div><div class="ml-sub">Już w trakcie</div></div></div>
+  <div class="ml-item"><span class="ml-icon">💰</span><div><div class="ml-title">Podstawy Finansów</div><div class="ml-sub">Rozumieć liczby</div></div></div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-now"></div>Skill już rozwijany</div>
+  <div class="legend-item"><div class="legend-dot dot-build"></div>Do zbudowania</div>
+</div>
+
+<script>
+const skills = 15;
+const ids = Array.from({length: skills}, (_, i) => 'S' + i);
+
+function layout() {
+  const wrap = document.getElementById('mapWrap');
+  const center = document.getElementById('center');
+
+  // Set wrap height
+  const W = wrap.offsetWidth;
+  const H = Math.min(W * 0.72, 680);
+  wrap.style.height = H + 'px';
+
+  const cx = W / 2;
+  const cy = H / 2;
+
+  // Place center
+  center.style.left = cx + 'px';
+  center.style.top  = cy + 'px';
+
+  // Evenly distribute 15 skills in a circle
+  // Use two rings: inner (5 items closer) outer (10 items further)
+  const innerIds = [0,1,2,3,4];        // 5 inner
+  const outerIds = [5,6,7,8,9,10,11,12,13,14]; // 10 outer
+
+  const innerR = Math.min(W * 0.24, 185);
+  const outerR = Math.min(W * 0.43, 360);
+
+  const positions = {};
+
+  innerIds.forEach((id, i) => {
+    const angle = (i / innerIds.length) * Math.PI * 2 - Math.PI / 2;
+    positions[id] = {
+      x: cx + Math.cos(angle) * innerR,
+      y: cy + Math.sin(angle) * innerR
+    };
+  });
+
+  outerIds.forEach((id, i) => {
+    const angle = (i / outerIds.length) * Math.PI * 2 - Math.PI / 2 + (Math.PI / outerIds.length);
+    positions[id] = {
+      x: cx + Math.cos(angle) * outerR,
+      y: cy + Math.sin(angle) * outerR
+    };
+  });
+
+  // Position skill nodes
+  for (let i = 0; i < skills; i++) {
+    const el = document.getElementById('s' + i);
+    if (!el) continue;
+    const p = positions[i];
+    el.style.left = p.x + 'px';
+    el.style.top  = p.y + 'px';
+    el.style.transform = 'translate(-50%, -50%)';
+  }
+
+  // Draw SVG lines
+  const svg = document.getElementById('svgLines');
+  svg.innerHTML = '';
+
+  for (let i = 0; i < skills; i++) {
+    const p = positions[i];
+    // Line from center to skill
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx);
+    line.setAttribute('y1', cy);
+    line.setAttribute('x2', p.x);
+    line.setAttribute('y2', p.y);
+
+    // Dashed for "already building" skills: 0(barista),3(biohacking),9(psych),12(deepwork),13(networking)
+    const alreadyBuilding = [0,3,9,12,13];
+    if (alreadyBuilding.includes(i)) {
+      line.setAttribute('stroke-dasharray', '6 4');
+      line.setAttribute('stroke-opacity', '0.5');
+    }
+
+    svg.appendChild(line);
+  }
+
+  // Animate lines in
+  svg.querySelectorAll('line').forEach((line, i) => {
+    const len = 600;
+    line.style.strokeDashoffset = len;
+    line.style.transition = `stroke-dashoffset 0.6s ${i * 0.04}s ease`;
+    setTimeout(() => { line.style.strokeDashoffset = 0; }, 100);
+  });
+}
+
+// Animate nodes in
+document.querySelectorAll('.skill, .center').forEach((el, i) => {
+  el.style.opacity = '0';
+  el.style.transition = `opacity 0.4s ${i * 0.06}s ease, transform 0.2s ease`;
+  setTimeout(() => { el.style.opacity = '1'; }, 200 + i * 60);
+});
+
+document.fonts.ready.then(() => {
+  layout();
+  window.addEventListener('resize', layout);
+});
+</script>
+
+</body>
+</html>
